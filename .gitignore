@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.env*
+!.env.example
+coverage/
+*.tsbuildinfo
+*.log
+.vercel/
+.npm-cache/
+.qa-browser-state.json
+.qa-gallery-state.json
