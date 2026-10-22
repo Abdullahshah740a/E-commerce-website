@@ -304,7 +304,9 @@ export function Checkout({ settings: s }: { settings: Settings }) {
           </div>
           {(!s.checkout_enabled || shipping === null || !s.whatsapp) && (
             <p className="notice">
-              Orders are not open yet. The store must finish delivery and WhatsApp setup.
+              {!s.whatsapp || shipping === null
+                ? 'Ordering is unavailable because delivery or WhatsApp is not configured. Please contact the store.'
+                : 'Online orders are temporarily paused. Please contact the store or try again later.'}
             </p>
           )}
           {error && (

@@ -80,7 +80,7 @@ if (mode === 'setup') {
   let failed = false;
   const { error: settingsError } = await service
     .from('settings')
-    .update({ data: { ...state.settings, checkout_enabled: false } })
+    .update({ data: state.settings })
     .eq('id', true);
   if (settingsError) failed = true;
   const { data: orders, error: orderError } = await service
@@ -139,6 +139,6 @@ if (mode === 'setup') {
   if (failed) throw new Error('Browser QA cleanup incomplete. State retained.');
   unlinkSync(file);
   console.log(
-    `Browser QA cleaned up (${orders.length} test order(s)); real business settings preserved; checkout closed pending launch.`,
+    `Browser QA cleaned up (${orders.length} test order(s)); original business settings and checkout state restored.`,
   );
 } else throw new Error('Usage: node scripts/browser-fixture.mjs setup|cleanup [ADMIN_EMAIL]');

@@ -317,11 +317,11 @@ try {
   process.exitCode = 1;
 } finally {
   let cleanupFailed = false;
-  // First close ordering; preserve the real business settings configured by the owner.
+  // Restore the owner's original checkout state and business settings.
   if (originalSettings) {
     const { error } = await service
       .from('settings')
-      .update({ data: { ...originalSettings, checkout_enabled: false } })
+      .update({ data: originalSettings })
       .eq('id', true);
     if (error) cleanupFailed = true;
   }
@@ -366,6 +366,6 @@ try {
     process.exitCode = 1;
   } else
     console.log(
-      'QA orders and product removed; real business settings preserved; checkout disabled until launch review.',
+      'QA orders and product removed; original business settings and checkout state restored.',
     );
 }

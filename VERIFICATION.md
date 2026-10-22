@@ -31,7 +31,7 @@ The PostgreSQL tests run the actual migration SQL in isolated PGlite PostgreSQL,
 - Product media storage bucket exists.
 - All four migrations are installed; public catalog and best-seller functions pass. No further SQL setup is currently needed. Do not rerun the fresh-install bundle.
 - The supplied administrator account was created without assigning a password or sending email, added to the allowlist, and verified with an in-memory authenticated session. The owner subsequently confirmed private password setup and successful sign-in.
-- Real business settings are persisted: Rahat Bedsheets, the supplied WhatsApp destination, and PKR 100 delivery. Checkout remains disabled pending launch review.
+- Real business settings are persisted: Rahat Bedsheets, WhatsApp +923490896871, and PKR 100 delivery. The owner subsequently requested checkout activation; it is now enabled. Nine live checkout checks were repeated successfully, their QA records removed, and the enabled state restored afterward. Click-to-chat opens a prefilled message; the customer must press Send in WhatsApp.
 
 ## Live integration exercises
 
@@ -44,10 +44,14 @@ The PostgreSQL tests run the actual migration SQL in isolated PGlite PostgreSQL,
 
 ## Still required before launch
 
+Owner-requested browsing samples were subsequently added: **12 products with 24 original sample illustrations**, variants, fictional stock/prices, sale examples and an out-of-stock example. Each product name starts with `Demo —`, and its description identifies it as a sample. These records are intentionally retained for the owner to browse and delete through admin. This is separate from the disposable QA fixtures that were removed. The demo seeder is manual-only and skips existing demo slugs; it never runs during a build or deployment. Store settings and orders were not changed.
+
+Remove/archive these demo products through `/admin/products` before launch. If a sample has acquired order history, archive it instead of permanently deleting it.
+
 1. Add the real product catalog, photos, prices, variants and inventory through `/admin`. The storefront intentionally has an honest empty state until then.
 2. Configure the actual store logo/address and final delivery/return/privacy policies. Business name, phone, WhatsApp and delivery fee are already saved.
 3. Configure production Auth URLs, recovery email/SMTP, signup restrictions and backups. Test the owner's password login/recovery in the deployed environment and test a real video if videos will be used.
-4. Select commercial-compatible hosting, configure secure production environment/redirect URLs and trusted client-address headers, deploy and verify the deployed workflow. Enable checkout and search indexing only after launch review. **No deployment has been performed.**
+4. Select commercial-compatible hosting, configure secure production environment/redirect URLs and trusted client-address headers, deploy and verify the deployed workflow. Checkout is enabled at the owner's request; search indexing remains disabled pending production launch review. **No deployment has been performed.**
 
 ## Deliberate release limits
 

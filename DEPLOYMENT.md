@@ -4,7 +4,7 @@ The owner will perform GitHub upload and Vercel hosting manually. This document 
 
 ## Current state
 
-The application builds and has passed local automated tests, live Supabase access/admin/checkout checks, and a real browser purchase journey. All four migrations and the requested administrator are installed. The owner confirmed password setup and sign-in. Business name, WhatsApp destination and PKR 100 delivery are stored in the database. Disposable QA records are removed. Checkout and search indexing remain disabled pending launch review.
+The application builds and has passed local automated tests, live Supabase access/admin/checkout checks, and a real browser purchase journey. All four migrations and the requested administrator are installed. The owner confirmed password setup and sign-in. Business name, WhatsApp destination and PKR 100 delivery are stored in the database. Disposable QA records are removed. At the owner's request, checkout is enabled for browsing/testing with WhatsApp +923490896871. Search indexing remains disabled. Remove demo products and finish production launch checks before accepting real sales.
 
 Business content is managed through `/admin`: add the real products/photos/prices/stock, store logo/address and final policies. That content is in Supabase and does **not** need another code upload each time it changes.
 
