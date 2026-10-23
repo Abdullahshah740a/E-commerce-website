@@ -2,13 +2,21 @@ import 'server-only';
 import { privilegedDb } from './supabase';
 import { makeWebhookUrl, sendOrderWebhook, type OrderEvent } from './webhook-request';
 
+// Owner-requested default. Keep this module server-only so the endpoint never
+// enters the browser bundle. An environment value can override it later.
+const DEFAULT_ORDER_WEBHOOK_URL = 'https://hook.eu1.make.com/b1q2d69jbmsjsdgvmcomu6tauf4rnek1';
+
+export function orderWebhookUrl() {
+  return process.env.ORDER_WEBHOOK_URL?.trim() || DEFAULT_ORDER_WEBHOOK_URL;
+}
+
 export function webhookConfigured() {
-  return !!makeWebhookUrl(process.env.ORDER_WEBHOOK_URL);
+  return !!makeWebhookUrl(orderWebhookUrl());
 }
 
 export async function deliverOrderWebhook(orderId: string) {
   const db = privilegedDb();
-  const url = process.env.ORDER_WEBHOOK_URL || '';
+  const url = orderWebhookUrl();
   for (let attempt = 0; attempt < 3; attempt++) {
     const { data, error } = await db.rpc('claim_order_webhook', { p_order: orderId });
     if (error) return 'unavailable';

@@ -80,7 +80,7 @@ Set SiteURL to the environment you're testing; the handler supports PKCE `code` 
 - Storage persists in Supabase, not the production filesystem. Upload failures clean up their new object where possible; removing media/product also attempts cleanup. If storage deletion fails, the admin sees an error. Review unreferenced keys in the Storage dashboard before deleting; do not bulk delete files without checking `product_media.storage_key`. There is no unattended cleanup service.
 - The public storage bucket is for published product assets only; don't upload private documents or customer information. Supabase database backups do not substitute for object-storage backups.
 
-The required server-only `ORDER_WEBHOOK_URL` is documented in `.env.example` and `WEBHOOK.md`; copy its private value into Vercel when deploying. It is not an admin-editable or public setting. Migration 005 is installed; do not rerun prior migrations.
+The optional server-only override `ORDER_WEBHOOK_URL` is documented in `.env.example` and `WEBHOOK.md`; the owner-requested default in server-only source works on Vercel when this variable is missing or blank. It is not an admin-editable or public setting. Migration 005 is installed; do not rerun prior migrations.
 
 ## Tests
 
@@ -130,6 +130,6 @@ For an authorized Vercel deployment:
 5. Add the custom domain in the hosting dashboard; apply the exact DNS values the host supplies, verify HTTPS, then update SITE_URL and Supabase redirect allowlist and redeploy. Do not guess DNS records.
 6. After real branding, catalog, policies and tests pass, set STORE_LAUNCHED=true and request indexing. Rotate any exposed credentials before launch.
 
-Troubleshooting: PGRST205 / missing tables → apply migrations in order. Missing `search_catalog` → apply migration 003. Login succeeds but access is rejected → check `admins.user_id`. Upload fails → check bucket/policies/type/size. Checkout disabled → configure delivery, ORDER_WEBHOOK_URL and migration 005, then enable orders. Production checkout unavailable → check secret key, rate-limit secret and trusted IP header. SQL migration errors → stop, record the exact error and check which migrations were applied before rerunning anything.
+Troubleshooting: PGRST205 / missing tables → apply migrations in order. Missing `search_catalog` → apply migration 003. Login succeeds but access is rejected → check `admins.user_id`. Upload fails → check bucket/policies/type/size. Checkout disabled → configure delivery and migration 005, verify the server webhook default/override, then enable orders. Production checkout unavailable → check secret key, rate-limit secret and trusted IP header. SQL migration errors → stop, record the exact error and check which migrations were applied before rerunning anything.
 
 Official references: [Next.js Proxy](https://nextjs.org/docs/app/getting-started/proxy), [Supabase SSR](https://supabase.com/docs/guides/auth/server-side/creating-a-client), [Supabase API keys](https://supabase.com/docs/guides/api/api-keys).

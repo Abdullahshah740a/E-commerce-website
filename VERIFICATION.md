@@ -2,6 +2,8 @@
 
 ## Current order flow
 
+Owner-requested fallback update: the Make endpoint is now hardcoded only in the server-only notification module. A missing/blank ORDER_WEBHOOK_URL uses that default for both readiness and delivery. Four configuration tests plus five transport tests passed, as did production build and lint. A scan of 24 browser JavaScript/source-map files found zero endpoint/server-secret matches. Deploy the updated source to use this fallback on Vercel; no database migration is needed.
+
 Availability follow-up: the running `/checkout` response reports notification readiness and checkout enabled, with PKR 100 delivery. Browser inspection confirmed the enabled Confirm order button. Checkout now refreshes server availability on focus/pageshow and immediately/every 15 seconds while unavailable, preserving the mounted form; a Check again button provides a manual recheck. TypeScript and lint passed for this fix.
 
 Final checks for the Make change: **60 automated tests, 12 local HTTP checks, 10 read-only hosted Supabase checks, ESLint and production build passed**. A scan of 24 client JavaScript/source-map files found zero matches for the configured webhook URL or server secret. Browser inspection showed an enabled Confirm order button, no WhatsApp checkout field/link, and the unchanged PKR 100 delivery fee. The owner's cart and form data were not submitted during browser inspection.

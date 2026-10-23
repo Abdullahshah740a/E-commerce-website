@@ -2,8 +2,6 @@
 import { loadEnvFile } from 'node:process';
 import { createClient } from '@supabase/supabase-js';
 loadEnvFile('.env.local');
-if (!process.env.ORDER_WEBHOOK_URL?.startsWith('https://hook.eu1.make.com/'))
-  throw new Error('Configure the server-only ORDER_WEBHOOK_URL before enabling checkout.');
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });

@@ -1,6 +1,6 @@
 # Order confirmation → Make
 
-The owner-supplied Make URL is configured privately in `.env.local` as `ORDER_WEBHOOK_URL`. It must be entered again as a **server-only** Vercel environment variable when deploying. Never use a `NEXT_PUBLIC_` prefix or commit the real endpoint to source control. No Discord integration is implemented; the owner manages downstream Make/Discord processing.
+At the owner's explicit request, the supplied Make URL is now the default in the server-only `src/lib/order-webhooks.ts` module. Checkout and delivery use this same default when `ORDER_WEBHOOK_URL` is missing or blank, including on Vercel. The URL is therefore present in repository source, but is not sent to the browser. `ORDER_WEBHOOK_URL` remains an optional server-only override; never use a `NEXT_PUBLIC_` prefix. No Discord integration is implemented; the owner manages downstream Make/Discord processing.
 
 ## Customer flow
 

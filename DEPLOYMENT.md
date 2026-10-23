@@ -4,7 +4,7 @@ The owner will perform GitHub upload and Vercel hosting manually. This document 
 
 ## Current state
 
-The application builds and has passed local automated tests, live Supabase access/admin/checkout checks, and a real browser purchase journey. All five migrations and the requested administrator are installed. The owner confirmed password setup and sign-in. Business name and PKR 100 delivery are stored in the database. The private Make endpoint is stored server-side in the environment. Disposable QA records are removed. At the owner's request, checkout is enabled using the server-side Make webhook; see WEBHOOK.md. Search indexing remains disabled. Remove demo products and finish production launch checks before accepting real sales.
+The application builds and has passed local automated tests, live Supabase access/admin/checkout checks, and a real browser purchase journey. All five migrations and the requested administrator are installed. The owner confirmed password setup and sign-in. Business name and PKR 100 delivery are stored in the database. The owner-requested Make default is stored in server-only source; ORDER_WEBHOOK_URL is an optional override. Disposable QA records are removed. At the owner's request, checkout is enabled using the server-side Make webhook; see WEBHOOK.md. Search indexing remains disabled. Remove demo products and finish production launch checks before accepting real sales.
 
 Business content is managed through `/admin`: add the real products/photos/prices/stock, store logo/address and final policies. That content is in Supabase and does **not** need another code upload each time it changes.
 
@@ -38,15 +38,15 @@ Do not configure a static export or use `dist/` as the output. This application 
 
 Copy the required values privately from your local `.env.local` or the provider dashboards into Vercel's environment-variable fields. Do not upload that file to GitHub.
 
-| Variable                               | Production value                            |
-| -------------------------------------- | ------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Existing Supabase project URL               |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Existing `sb_publishable_…` key             |
-| `ORDER_WEBHOOK_URL`                    | Owner-provided private Make endpoint        |
-| `SUPABASE_SECRET_KEY`                  | Server-only `sb_secret_…` key               |
-| `CHECKOUT_RATE_LIMIT_SECRET`           | Random secret at least 32 characters long   |
-| `NEXT_PUBLIC_SITE_URL`                 | Actual HTTPS production URL                 |
-| `STORE_LAUNCHED`                       | `false` until the launch review is complete |
+| Variable                               | Production value                              |
+| -------------------------------------- | --------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Existing Supabase project URL                 |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Existing `sb_publishable_…` key               |
+| `ORDER_WEBHOOK_URL`                    | Optional server-only override of Make default |
+| `SUPABASE_SECRET_KEY`                  | Server-only `sb_secret_…` key                 |
+| `CHECKOUT_RATE_LIMIT_SECRET`           | Random secret at least 32 characters long     |
+| `NEXT_PUBLIC_SITE_URL`                 | Actual HTTPS production URL                   |
+| `STORE_LAUNCHED`                       | `false` until the launch review is complete   |
 
 Do not give the secret key a `NEXT_PUBLIC_` prefix. Do not manually invent or set the `VERCEL` platform variable; Vercel supplies it. Checkout uses Vercel's documented edge-set client-address header for abuse limiting.
 
