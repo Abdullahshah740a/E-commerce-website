@@ -4,6 +4,7 @@ import { adminDb } from '@/lib/supabase';
 import { categorySchema, productSchema, settingsSchema, orderUpdateSchema } from '@/lib/validation';
 import { sameOrigin, readJson, failure, noStore } from '@/lib/http';
 import { deliverOrderWebhook } from '@/lib/order-webhooks';
+import { isYouTubeUrl, youtubeVideo } from '@/lib/product-video';
 export const maxDuration = 60;
 export async function POST(request: Request) {
   try {
@@ -151,7 +152,17 @@ export async function POST(request: Request) {
     }
     if (action === 'video-url') {
       const d = z
-        .object({ product_id: z.uuid(), url: z.url().startsWith('https://').max(2000) })
+        .object({
+          product_id: z.uuid(),
+          url: z
+            .url()
+            .startsWith('https://')
+            .max(2000)
+            .refine(
+              (url) => !isYouTubeUrl(url) || !!youtubeVideo(url),
+              'Enter a YouTube video link (watch, share, Shorts or embed), not a channel or playlist.',
+            ),
+        })
         .parse(body.data);
       const { error } = await db.from('product_media').insert({ ...d, type: 'video' });
       if (error) throw error;

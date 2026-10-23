@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { adminAction } from './admin-common';
 import type { Media } from '@/lib/types';
+import { ProductVideo } from './product-video';
 export function MediaManager({
   productId,
   initialMedia,
@@ -84,7 +85,8 @@ export function MediaManager({
       </p>
       <p>
         JPEG, PNG, WebP, MP4 or WebM. Up to 3 MB per file to stay within server upload limits. For
-        longer videos, use an HTTPS URL to a directly playable video. Product media is public.
+        longer videos, use a YouTube link or an HTTPS URL to an MP4/WebM video. YouTube videos must
+        allow embedding. Product media is public.
       </p>
       <label>
         Upload images or video
@@ -116,7 +118,7 @@ export function MediaManager({
                 unoptimized
               />
             ) : (
-              <video src={m.url} controls playsInline preload="metadata" />
+              <ProductVideo url={m.url} title={`Product video ${i + 1}`} />
             )}
             <div className="row">
               {m.type === 'image' && (
@@ -172,12 +174,12 @@ export function MediaManager({
       </div>
       <div className="row">
         <label className="grow">
-          External video URL
+          YouTube or direct video URL
           <input
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://…/video.mp4"
+            placeholder="https://www.youtube.com/watch?v=… or https://…/video.mp4"
           />
         </label>
         <button

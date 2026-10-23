@@ -7,6 +7,7 @@ import type { Product } from '@/lib/types';
 import { money, effectivePrice } from '@/lib/commerce';
 import { useCart } from './cart-provider';
 import { ImageLightbox } from './image-lightbox';
+import { ProductVideo } from './product-video';
 export function ProductDetail({ product: p }: { product: Product }) {
   const variants = p.variants.filter((v) => v.active);
   const [variantId, setVariant] = useState(
@@ -61,14 +62,7 @@ export function ProductDetail({ product: p }: { product: Product }) {
               />
             </button>
           ) : selected?.type === 'video' ? (
-            <video
-              key={selected.id}
-              src={selected.url}
-              controls
-              playsInline
-              preload="metadata"
-              aria-label={`${p.name} product video`}
-            />
+            <ProductVideo key={selected.id} url={selected.url} title={`${p.name} product video`} />
           ) : (
             <Armchair size={100} strokeWidth={1} />
           )}

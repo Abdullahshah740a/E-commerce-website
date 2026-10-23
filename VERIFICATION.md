@@ -2,6 +2,8 @@
 
 ## Current order flow
 
+Product-media repair: YouTube watch/share/Shorts/live/embed links now render through a shared privacy-enhanced YouTube iframe player in both the customer gallery and admin preview, with fullscreen/inline playback and an explicit referrer policy. Uploaded MP4/WebM files retain native controls. Invalid YouTube channel/playlist links are rejected when added; existing valid saved video links work without being re-added. Product detail, thumbnail, catalog and admin images use contain sizing so the full original frame is visible; the catalog hover crop was removed. Browser verification on the owner's existing Charcoal Woven Throw product confirmed actual YouTube playback (moving video/captions after Play) and full-frame rendering of the existing 334×222 image. No products/media/database rows were changed for this test. All 88 tests, ESLint and production build passed. Screenshots: `artifacts/product-youtube-fixed.png`, `artifacts/product-full-image-fixed.png`. Requires source deployment; no SQL migration.
+
 Discord readability refinement: updated the active Make module to use six separate full-width fields (phone, delivery address, items, payment, instructions, customer note), bold headings/total, Pakistan-local order date and sage accent. Removed the raw-summary description. The phone field contains only the number; native mobile copying remains client-controlled and untested. A complete text receipt is attached so long item lists can use an explicit bounded preview without losing details. The owner approved one new fictional test; Make run `d23a94f3fe5647ad810561debdadbc0c` succeeded, returning one embed, one complete 893-byte attachment and message `1563134972003487745`. All six field values and PKR 3,450 total were checked. No website order or inventory changes. See WEBHOOK.md for the current mapping and its summary-delimiter dependency. This Make-only change is already live.
 
 Customer receipt presentation: replaced the raw summary textarea with a static branded receipt card containing the saved order reference/date, status, delivery/contact details, item snapshots, quantities, prices, delivery/discount/total and optional customer notes. Added copy-summary and print/save-PDF controls, print-specific layout, small-screen stacking, and focus/scroll to the confirmation after submission. The API explicitly projects customer-safe fields instead of returning database records. The full existing suite plus initial receipt checks passed (70 tests), and the additional static-render check passed (3 receipt tests total), verifying escaped text and absence of editable fields. Desktop browser inspection used fictional local fixtures only; no orders or notifications were sent. Preview screenshots are in `artifacts/receipt-card.png` and `artifacts/receipt-card-details.png`; the temporary preview route was removed. Requires uploading/deploying the updated source; no SQL migration is needed.
@@ -76,10 +78,11 @@ Remove/archive these demo products through `/admin/products` before launch. If a
 ## Deliberate release limits
 
 - Pakistan/PKR only. The settings display these fixed initial-market values; international storefront configuration is not implemented.
-- Direct uploads are limited to 3 MB per file. Longer videos require a directly playable HTTPS URL. Category images and logos accept URLs; their own dedicated upload controls are not included.
+- Direct uploads are limited to 3 MB per file. Longer videos can use YouTube video links (embedding must be allowed) or directly playable HTTPS video URLs. Category images and logos accept URLs; their own dedicated upload controls are not included.
 - Pending saved orders hold stock until an administrator cancels them; there is no automatic expiry or scheduled stock-release job.
 - Store-owner instructions cover reviewing unreferenced storage objects; no automatic background orphan-media cleanup service exists.
 
 **The core workflow is implemented and tested with the live backend. Production launch is pending real business content, final policies, hosting and deployed-environment verification.**
 
 Receipt final checks: ESLint and production build passed after removal of the temporary preview route. The additional receipt render test passed, bringing verified coverage to 71 tests across the full run and focused follow-up.
+
