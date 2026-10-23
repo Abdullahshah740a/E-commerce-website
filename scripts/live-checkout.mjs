@@ -1,5 +1,5 @@
 // Exercises real HTTP checkout and PostgreSQL transactions with disposable QA records.
-// Does not open WhatsApp, send messages, change passwords or retain test orders.
+// Sends clearly labeled QA order notifications to the configured Make webhook. Never run against an operating store.
 import { loadEnvFile } from 'node:process';
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
@@ -93,11 +93,6 @@ try {
   const { data: cfg, error: cfgError } = await service.from('settings').select('data').single();
   assert.equal(cfgError, null);
   originalSettings = cfg.data;
-  assert.match(
-    originalSettings.whatsapp,
-    /^[1-9]\d{7,14}$/,
-    'Real WhatsApp number must be configured first',
-  );
   assert.notEqual(originalSettings.delivery_fee, null);
   await admin('settings', { ...originalSettings, checkout_enabled: true });
   const draft = {
@@ -143,7 +138,7 @@ try {
   variants = p.variants.sort((a, b) => a.sku.localeCompare(b.sku));
   const customer = {
     name: `QA ONLY ${suffix}`,
-    phone: originalSettings.whatsapp,
+    phone: '923490896871',
     whatsapp: '',
     province: 'Punjab',
     city: 'QA Test City',
@@ -179,25 +174,19 @@ try {
       assert.equal(await stock(variants[1].id), 0);
     },
   );
-  await check(
-    'WhatsApp link targets the real store and contains every saved item without sending',
-    async () => {
-      assert.ok(first.link && !first.link.copyRequired);
-      const link = new URL(first.link.url);
-      assert.equal(link.hostname, 'wa.me');
-      assert.equal(link.pathname, `/${originalSettings.whatsapp}`);
-      assert.equal(link.searchParams.get('text'), first.message);
-      for (const item of order.order_items) {
-        assert.ok(first.message.includes(item.sku));
-        assert.ok(first.message.includes(`Quantity: ${item.quantity}`));
-        assert.ok(first.message.includes(item.variant));
-      }
-      assert.ok(first.message.includes(order.reference));
-      assert.ok(first.message.includes(customer.address));
-      assert.ok(first.message.includes('Cash on Delivery'));
-      assert.equal((await saved(first.reference)).status, 'pending_confirmation');
-    },
-  );
+  await check('Receipt contains every saved item and does not return a WhatsApp link', async () => {
+    assert.equal(first.link, undefined);
+    assert.equal(first.status, 'pending_confirmation');
+    for (const item of order.order_items) {
+      assert.ok(first.message.includes(item.sku));
+      assert.ok(first.message.includes(`Quantity: ${item.quantity}`));
+      assert.ok(first.message.includes(item.variant));
+    }
+    assert.ok(first.message.includes(order.reference));
+    assert.ok(first.message.includes(customer.address));
+    assert.ok(first.message.includes('Cash on Delivery'));
+    assert.equal((await saved(first.reference)).status, 'pending_confirmation');
+  });
   await check(
     'Identical checkout retry returns one order and subtracts stock only once',
     async () => {
@@ -311,7 +300,9 @@ try {
     });
     assert.equal(result.status, 400);
   });
-  console.log(`${passed} live checkout checks passed. No WhatsApp message was opened or sent.`);
+  console.log(
+    `${passed} live checkout checks passed. QA order notifications were sent to the configured Make webhook.`,
+  );
 } catch (error) {
   console.error(`FAIL: ${error instanceof Error ? error.message : 'Live checkout failed'}`);
   process.exitCode = 1;

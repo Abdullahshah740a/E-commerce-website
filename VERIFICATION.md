@@ -1,4 +1,10 @@
-# Verification — 22 October 2026
+# Verification — 23 October 2026
+
+## Current order flow
+
+Final checks for the Make change: **60 automated tests, 12 local HTTP checks, 10 read-only hosted Supabase checks, ESLint and production build passed**. A scan of 24 client JavaScript/source-map files found zero matches for the configured webhook URL or server secret. Browser inspection showed an enabled Confirm order button, no WhatsApp checkout field/link, and the unchanged PKR 100 delivery fee. The owner's cart and form data were not submitted during browser inspection.
+
+The owner replaced WhatsApp ordering with server-side Make webhook delivery. Migration 005 is installed. Confirm order saves a pending/unpaid COD order and a durable notification atomically, then returns a receipt immediately. Background delivery has leases, bounded retries and admin status/manual retry. The private endpoint stays in ORDER_WEBHOOK_URL. Live testing verified Make HTTP acceptance on attempt one, complete two-item payload, no WhatsApp link, and idempotent replay without another send. All QA records were removed. The current automated suite passes 60 tests; build, type checks and lint are checked for this change. See WEBHOOK.md. Older WhatsApp/browser observations below describe the previous flow, not the current checkout.
 
 ## Implemented source
 
@@ -29,9 +35,9 @@ The PostgreSQL tests run the actual migration SQL in isolated PGlite PostgreSQL,
 - Anonymous users cannot read orders or administrator identities.
 - Anonymous callers cannot execute the guest order-creation RPC.
 - Product media storage bucket exists.
-- All four migrations are installed; public catalog and best-seller functions pass. No further SQL setup is currently needed. Do not rerun the fresh-install bundle.
+- All five migrations are installed; public catalog and best-seller functions pass. No further SQL setup is currently needed. Do not rerun the fresh-install bundle.
 - The supplied administrator account was created without assigning a password or sending email, added to the allowlist, and verified with an in-memory authenticated session. The owner subsequently confirmed private password setup and successful sign-in.
-- Real business settings are persisted: Rahat Bedsheets, WhatsApp +923490896871, and PKR 100 delivery. The owner subsequently requested checkout activation; it is now enabled. Nine live checkout checks were repeated successfully, their QA records removed, and the enabled state restored afterward. Click-to-chat opens a prefilled message; the customer must press Send in WhatsApp.
+- Real business settings are persisted: Rahat Bedsheets, WhatsApp +923490896871, and PKR 100 delivery. The owner subsequently requested checkout activation; it is now enabled. Nine live checkout checks were repeated successfully, their QA records removed, and the enabled state restored afterward. The latest checkout sends to Make and immediately shows a receipt; WhatsApp is no longer part of ordering.
 
 ## Live integration exercises
 

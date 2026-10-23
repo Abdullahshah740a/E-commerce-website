@@ -63,16 +63,6 @@ export function SettingsEditor({ settings: s }: { settings: Settings }) {
             <textarea name="description" defaultValue={s.description} />
           </label>
           <label>
-            WhatsApp number (digits with country code)
-            <input
-              name="whatsapp"
-              inputMode="tel"
-              pattern="[1-9][0-9]{7,14}"
-              placeholder="Your real business number"
-              defaultValue={s.whatsapp}
-            />
-          </label>
-          <label>
             Contact phone
             <input name="phone" defaultValue={s.phone || ''} />
           </label>

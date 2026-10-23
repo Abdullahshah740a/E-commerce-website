@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { adminDb } from '@/lib/supabase';
 import { categorySchema, productSchema, settingsSchema, orderUpdateSchema } from '@/lib/validation';
 import { sameOrigin, readJson, failure, noStore } from '@/lib/http';
+import { deliverOrderWebhook } from '@/lib/order-webhooks';
+export const maxDuration = 60;
 export async function POST(request: Request) {
   try {
     sameOrigin(request);
@@ -19,9 +21,12 @@ export async function POST(request: Request) {
         'media-order',
         'delete-media',
         'video-url',
+        'retry-webhook',
       ])
       .parse(body.action);
     let result: unknown = null;
+    if (action === 'retry-webhook')
+      result = await deliverOrderWebhook(z.uuid().parse(body.data.id));
     if (action === 'product') {
       const p = productSchema.parse(body.data);
       const r = await db.rpc('save_product', { p });

@@ -4,7 +4,7 @@ The owner will perform GitHub upload and Vercel hosting manually. This document 
 
 ## Current state
 
-The application builds and has passed local automated tests, live Supabase access/admin/checkout checks, and a real browser purchase journey. All four migrations and the requested administrator are installed. The owner confirmed password setup and sign-in. Business name, WhatsApp destination and PKR 100 delivery are stored in the database. Disposable QA records are removed. At the owner's request, checkout is enabled for browsing/testing with WhatsApp +923490896871. Search indexing remains disabled. Remove demo products and finish production launch checks before accepting real sales.
+The application builds and has passed local automated tests, live Supabase access/admin/checkout checks, and a real browser purchase journey. All five migrations and the requested administrator are installed. The owner confirmed password setup and sign-in. Business name and PKR 100 delivery are stored in the database. The private Make endpoint is stored server-side in the environment. Disposable QA records are removed. At the owner's request, checkout is enabled using the server-side Make webhook; see WEBHOOK.md. Search indexing remains disabled. Remove demo products and finish production launch checks before accepting real sales.
 
 Business content is managed through `/admin`: add the real products/photos/prices/stock, store logo/address and final policies. That content is in Supabase and does **not** need another code upload each time it changes.
 
@@ -42,6 +42,7 @@ Copy the required values privately from your local `.env.local` or the provider 
 | -------------------------------------- | ------------------------------------------- |
 | `NEXT_PUBLIC_SUPABASE_URL`             | Existing Supabase project URL               |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Existing `sb_publishable_…` key             |
+| `ORDER_WEBHOOK_URL`                    | Owner-provided private Make endpoint        |
 | `SUPABASE_SECRET_KEY`                  | Server-only `sb_secret_…` key               |
 | `CHECKOUT_RATE_LIMIT_SECRET`           | Random secret at least 32 characters long   |
 | `NEXT_PUBLIC_SITE_URL`                 | Actual HTTPS production URL                 |
@@ -57,14 +58,14 @@ If the production URL is not known until the first deployment, update `NEXT_PUBL
 - Add the exact production `/auth/confirm` callback to the redirect allowlist. Keep localhost entries only if local development is still required; don't use broad wildcard origins.
 - Follow the reset-email/SMTP instructions in `README.md`. Confirm password recovery actually reaches the intended inbox and lands on `/admin/reset` in production.
 - Disable public signups; customers use guest checkout. Only identities listed in `public.admins` can administer the store.
-- Do **not** rerun `supabase/setup.sql` or migrations 001–004 on the configured project. They are already installed. Future schema changes must use new migrations.
+- Do **not** rerun `supabase/setup.sql` or migrations 001–005 on the configured project. They are already installed. Future schema changes must use new migrations.
 
 ## 6. Test the deployed website before accepting orders
 
 1. Open the production URL on mobile and desktop. Check the real branding, product photos, variants and stock. Verify category/search/filter/sort/cart persistence.
 2. Sign in as the owner. Edit one test product, upload an image, refresh and confirm the public catalog reflects the change. Sign out and verify private pages/API operations are blocked.
-3. Verify store settings: WhatsApp destination, PKR 100 delivery unless deliberately changed, policies and contact details. No online payment/card collection is implemented.
-4. Enable checkout for a controlled test. Submit a clearly identified test order, confirm it appears in the admin dashboard with the correct saved snapshots/totals, and verify WhatsApp contains every item. Click-to-chat does not send automatically. Cancel the test order through admin to restore stock when finished.
+3. Verify store settings: order notification configuration, PKR 100 delivery unless deliberately changed, policies and contact details. No online payment/card collection is implemented.
+4. Enable checkout for a controlled test. Submit a clearly identified test order, confirm it appears in the admin dashboard with the correct saved snapshots/totals, and verify Make accepts every saved item and the website displays a receipt without opening WhatsApp. Cancel the test order through admin to restore stock when finished.
 5. Verify password recovery and storage behavior on the deployed host. Review safe hosting logs if anything fails. Do not log customer addresses, phone numbers, auth tokens or secret keys.
 6. Once the owner approves the real content, policies and production checks, keep checkout enabled and set `STORE_LAUNCHED=true`, then redeploy to allow search-engine indexing.
 

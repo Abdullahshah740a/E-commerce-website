@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { adminDb } from '@/lib/supabase';
 import { money } from '@/lib/commerce';
 import { OrderEditor } from '@/components/order-editor';
+import { WebhookStatus } from '@/components/webhook-status';
 import type { Order } from '@/lib/types';
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const db = await adminDb();
@@ -13,6 +14,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   if (error || !data) notFound();
   const o = data as Order;
   const c = o.customer;
+  const { data: delivery } = await db
+    .from('order_webhooks')
+    .select('status,attempts,last_error,delivered_at')
+    .eq('order_id', o.id)
+    .maybeSingle();
   return (
     <>
       <span className="eyebrow">
@@ -33,14 +39,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         <div className="row">
           <a className="button secondary small" href={`tel:+${c.phone}`}>
             Call +{c.phone}
-          </a>
-          <a
-            className="button secondary small"
-            target="_blank"
-            rel="noreferrer"
-            href={`https://wa.me/${c.whatsapp || c.phone}`}
-          >
-            Contact on WhatsApp ↗
           </a>
         </div>
         {c.instructions && <p>Instructions: {c.instructions}</p>}
@@ -88,6 +86,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         </p>
       </div>
       <OrderEditor order={o} />
+      <WebhookStatus orderId={o.id} delivery={delivery} />
     </>
   );
 }

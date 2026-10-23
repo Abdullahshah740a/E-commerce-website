@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Armchair, ArrowUpRight, ShieldCheck, Truck } from 'lucide-react';
+import { Armchair, ShieldCheck, Truck } from 'lucide-react';
 import { storeData } from '@/lib/data';
 import { CartCount } from './cart-count';
 export async function Header() {
@@ -84,11 +84,6 @@ export async function Footer() {
           {s.phone && <a href={`tel:${s.phone}`}>{s.phone}</a>}
           {s.email && <a href={`mailto:${s.email}`}>{s.email}</a>}
           {s.address && <p>{s.address}</p>}
-          {s.whatsapp && (
-            <a href={`https://wa.me/${s.whatsapp}`} target="_blank" rel="noreferrer">
-              Chat on WhatsApp <ArrowUpRight size={14} />
-            </a>
-          )}
           {s.instagram && <a href={s.instagram}>Instagram</a>}
           {s.facebook && <a href={s.facebook}>Facebook</a>}
         </div>

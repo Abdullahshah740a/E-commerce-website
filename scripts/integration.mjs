@@ -52,6 +52,14 @@ await check('Anonymous users cannot read administrator identities', async () => 
   const r = await request('admins?select=user_id&limit=1', pub);
   return r.status === 401 || r.status === 403 || (r.ok && r.data.length === 0);
 });
+await check('Webhook queue exists with server access', async () => {
+  const r = await request('order_webhooks?select=order_id&limit=0', secret);
+  return r.ok;
+});
+await check('Anonymous users cannot read webhook payloads', async () => {
+  const r = await request('order_webhooks?select=order_id&limit=1', pub);
+  return r.status === 401 || r.status === 403 || (r.ok && r.data.length === 0);
+});
 await check('Anonymous callers cannot invoke order creation', async () => {
   const r = await request('rpc/place_order', pub, 'POST', {
     p_key: '00000000-0000-4000-8000-000000000001',

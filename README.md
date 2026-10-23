@@ -1,12 +1,12 @@
 # Home textile store
 
-Next.js App Router, React, strict TypeScript, Tailwind CSS, Supabase PostgreSQL/Auth/Storage. Guest Cash on Delivery checkout saves a transaction before preparing WhatsApp. No payment gateway or WhatsApp API subscription is required.
+Next.js App Router, React, strict TypeScript, Tailwind CSS, Supabase PostgreSQL/Auth/Storage. Guest Cash on Delivery checkout saves the order and immediately shows a receipt. Order details are delivered server-side to the owner-configured Make webhook; no payment gateway is used. See WEBHOOK.md for the current flow and payload.
 
 ## Status
 
 The source implements the storefront, variant-aware catalog, product gallery, persistent local cart, checkout, admin authentication, product/category/inventory/media/settings management and order management. See `VERIFICATION.md` for the completed checks and remaining launch requirements. **No production deployment has been performed.**
 
-The connected project now has all four migrations, the first administrator allowlist, and the owner's real business name/WhatsApp/delivery fee configured. Live admin and checkout integration exercises have passed, including actual media persistence and concurrent last-unit purchases. The owner confirmed successful password setup and sign-in. A real browser journey verified multi-variant cart persistence, saved checkout, copy-summary feedback and the WhatsApp preview without sending a message. All disposable QA records were removed. Owner-requested demo products remain for browsing. The real catalog/photos, policies, and deployment verification remain before launch. Checkout is now enabled at the owner's request, targeting WhatsApp +923490896871 with PKR 100 delivery; search indexing remains disabled.
+The connected project now has all five migrations, the first administrator allowlist, and the owner's real business name/contact/delivery fee configured. Live admin and checkout integration exercises have passed, including actual media persistence and concurrent last-unit purchases. The owner confirmed successful password setup and sign-in. A real browser journey verified multi-variant cart persistence, saved checkout and copy-summary feedback. The current Make webhook flow has also been verified live with a fictional two-item order and idempotent replay. All disposable QA records were removed. Owner-requested demo products remain for browsing. The real catalog/photos, policies, and deployment verification remain before launch. Checkout is now enabled at the owner's request, using the private Make endpoint with PKR 100 delivery; search indexing remains disabled.
 
 ## Local development
 
@@ -62,7 +62,7 @@ Alternatively, a trusted operator can run `node --env-file=.env.local scripts/pr
 
 Set SiteURL to the environment you're testing; the handler supports PKCE `code` links as well. Test recovery before launch. Don't use wildcard redirect origins.
 
-9. Sign in at `/admin/login`. Set the real business name/contact details, logo URL, policies, WhatsApp number (international digits only), delivery fee, optional city fees/free-delivery threshold. Set 0 only when delivery is actually free. Enable checkout only when those details are ready.
+9. Sign in at `/admin/login`. Set the real business name/contact details, logo URL, policies, delivery fee, optional city fees/free-delivery threshold. Set 0 only when delivery is actually free. Enable checkout only when those details are ready.
 10. Add real products and images. Every product needs at least one variant, even if it is named Standard. Variant SKU is unique. Inventory and optional override prices are per variant.
 
 ## Security and inventory design
@@ -80,6 +80,8 @@ Set SiteURL to the environment you're testing; the handler supports PKCE `code` 
 - Storage persists in Supabase, not the production filesystem. Upload failures clean up their new object where possible; removing media/product also attempts cleanup. If storage deletion fails, the admin sees an error. Review unreferenced keys in the Storage dashboard before deleting; do not bulk delete files without checking `product_media.storage_key`. There is no unattended cleanup service.
 - The public storage bucket is for published product assets only; don't upload private documents or customer information. Supabase database backups do not substitute for object-storage backups.
 
+The required server-only `ORDER_WEBHOOK_URL` is documented in `.env.example` and `WEBHOOK.md`; copy its private value into Vercel when deploying. It is not an admin-editable or public setting. Migration 005 is installed; do not rerun prior migrations.
+
 ## Tests
 
 ```powershell
@@ -91,26 +93,27 @@ npm.cmd run test:integration
 npm.cmd run test:smoke # requires npm run dev or npm start in another terminal
 ```
 
-Unit tests cover phone formats, paisa prices, shipping rules, checkout/settings/product validation, WhatsApp encoding and all-item summaries, long-message fallback, upload signatures, request origins, body-size limits and safe errors. Database tests execute the actual migrations in an isolated embedded PostgreSQL database with test-only Auth and Storage schemas; they verify RLS, transaction rollback, idempotency, inventory, cancellations, stale stock edits, immutable snapshots, media ordering and best sellers. They do not substitute for hosted Supabase authentication/storage tests or multi-connection concurrency testing. The live integration script makes read-only schema/RLS/function-access/storage checks. It fails when migrations/configuration are missing; it never silently skips them.
+Unit tests cover phone formats, paisa prices, shipping rules, checkout/settings/product validation, all-item order summaries, webhook payloads/HTTP failures, upload signatures, request origins, body-size limits and safe errors. Database tests execute the actual migrations in an isolated embedded PostgreSQL database with test-only Auth and Storage schemas; they verify RLS, transaction rollback, idempotency, inventory, cancellations, stale stock edits, immutable snapshots, media ordering and best sellers. They do not substitute for hosted Supabase authentication/storage tests or multi-connection concurrency testing. The live integration script makes read-only schema/RLS/function-access/storage checks. It fails when migrations/configuration are missing; it never silently skips them.
 
 Trusted-operator live exercises (run only with authorization against the intended project, while the local app is running):
 
 ```powershell
 node --env-file=.env.local scripts/live-admin.mjs ADMIN_EMAIL
-node --env-file=.env.local scripts/live-checkout.mjs ADMIN_EMAIL
+node scripts/live-webhook.mjs ADMIN_EMAIL # sends one QA notification to Make
+node scripts/live-checkout.mjs ADMIN_EMAIL # broader write suite; sends multiple QA notifications
 ```
 
-These tests authenticate through the Supabase Admin API using short-lived in-memory sessions without assigning passwords or sending email. They create clearly labeled disposable QA records, exercise the real HTTP APIs, cancel/delete only their own test orders, clean up their own products/media/users, and sign out. The checkout exercise temporarily enables ordering and restores the original settings/checkout state after testing; do not run it against an operating store. A failed cleanup is reported explicitly. No WhatsApp message is sent. `scripts/browser-fixture.mjs setup` and `cleanup ADMIN_EMAIL` provide the equivalent disposable fixture for manual browser QA; its local state is ignored by Git. `scripts/check-auth-redirect.mjs ADMIN_EMAIL` checks callback acceptance without sending email or printing recovery tokens.
+These tests authenticate through the Supabase Admin API using short-lived in-memory sessions without assigning passwords or sending email. They create clearly labeled disposable QA records, exercise the real HTTP APIs, cancel/delete only their own test orders, clean up their own products/media/users, and sign out. The checkout exercise temporarily enables ordering and restores the original settings/checkout state after testing; do not run it against an operating store. A failed cleanup is reported explicitly. The checkout write tests send clearly labeled QA notifications to the configured Make webhook. `scripts/browser-fixture.mjs setup` and `cleanup ADMIN_EMAIL` provide the equivalent disposable fixture for manual browser QA; its local state is ignored by Git. `scripts/check-auth-redirect.mjs ADMIN_EMAIL` checks callback acceptance without sending email or printing recovery tokens.
 
 ### Required manual acceptance before launch
 
 1. On desktop and mobile, sign in as the allowlisted admin. Verify logout and reset password, and that an ordinary authenticated user is rejected.
 2. Add/edit/archive a product and two differently priced variants. Upload several real images, select a primary image, reorder/remove them, add a short video. Refresh and verify public catalog/detail changes. Inactive categories/products must disappear.
 3. Search/filter/sort and paginate. Add both variants to a cart, reload, change quantities, remove one and re-add it. Try quantities above stock.
-4. Set actual shipping/WhatsApp, enable checkout, submit one test order with real permission to use those contact details. Verify persisted order/items and stock subtraction before WhatsApp opens. Tap Send manually. Verify retry/copy controls. Cancel the test order to release stock.
+4. Configure shipping and the private Make endpoint, enable checkout, and submit a clearly fictional test order. Verify the receipt, saved items, stock reduction and delivered notification in Admin → Orders. Cancel the test order to release stock.
 5. Submit an identical idempotency key twice; expect one order. Change price/stock before checkout; expect rejection with a cart-refresh prompt. Make two simultaneous orders for the last unit; exactly one may succeed.
 6. Change product name/price after ordering; the old order must retain original snapshots. Cancel twice; stock must restore once. Check private data cannot be fetched anonymously. Check client bundles do not contain the server secret.
-7. Verify database/network/upload failure messages, keyboard use, contrast, 375px/mobile layout, actual WhatsApp launch and long-message copying.
+7. Verify database/network/upload failure messages, keyboard use, contrast, 375px/mobile layout, immediate receipt and Make notification status/retry.
 
 ## Deployment preparation
 
@@ -127,6 +130,6 @@ For an authorized Vercel deployment:
 5. Add the custom domain in the hosting dashboard; apply the exact DNS values the host supplies, verify HTTPS, then update SITE_URL and Supabase redirect allowlist and redeploy. Do not guess DNS records.
 6. After real branding, catalog, policies and tests pass, set STORE_LAUNCHED=true and request indexing. Rotate any exposed credentials before launch.
 
-Troubleshooting: PGRST205 / missing tables → apply migrations in order. Missing `search_catalog` → apply migration 003. Login succeeds but access is rejected → check `admins.user_id`. Upload fails → check bucket/policies/type/size. Checkout disabled → set WhatsApp/delivery and enable orders. Production checkout unavailable → check secret key, rate-limit secret and trusted IP header. SQL migration errors → stop, record the exact error and check which migrations were applied before rerunning anything.
+Troubleshooting: PGRST205 / missing tables → apply migrations in order. Missing `search_catalog` → apply migration 003. Login succeeds but access is rejected → check `admins.user_id`. Upload fails → check bucket/policies/type/size. Checkout disabled → configure delivery, ORDER_WEBHOOK_URL and migration 005, then enable orders. Production checkout unavailable → check secret key, rate-limit secret and trusted IP header. SQL migration errors → stop, record the exact error and check which migrations were applied before rerunning anything.
 
 Official references: [Next.js Proxy](https://nextjs.org/docs/app/getting-started/proxy), [Supabase SSR](https://supabase.com/docs/guides/auth/server-side/creating-a-client), [Supabase API keys](https://supabase.com/docs/guides/api/api-keys).

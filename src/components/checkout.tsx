@@ -7,11 +7,17 @@ import type { Settings } from '@/lib/types';
 type Receipt = {
   reference: string;
   message: string;
-  link: { url: string; copyRequired: boolean } | null;
+  status: string;
   total: number;
   currency: string;
 };
-export function Checkout({ settings: s }: { settings: Settings }) {
+export function Checkout({
+  settings: s,
+  notificationsReady,
+}: {
+  settings: Settings;
+  notificationsReady: boolean;
+}) {
   const { items, ready, clear } = useCart();
   const [city, setCity] = useState('');
   const [busy, setBusy] = useState(false);
@@ -41,17 +47,10 @@ export function Checkout({ settings: s }: { settings: Settings }) {
       !items.length ||
       !s.checkout_enabled ||
       shipping === null ||
-      !s.whatsapp
+      !notificationsReady
     )
       return;
     submitting.current = true;
-    let popup: Window | null = null;
-    try {
-      popup = window.open('about:blank', '_blank');
-      if (popup) popup.opener = null;
-    } catch {
-      /* Checkout can continue using the receipt's WhatsApp link. */
-    }
     setBusy(true);
     setError('');
     const form = Object.fromEntries(new FormData(e.currentTarget));
@@ -91,15 +90,7 @@ export function Checkout({ settings: s }: { settings: Settings }) {
         sessionStorage.removeItem('checkout-key');
         sessionStorage.removeItem('checkout-fingerprint');
       } catch {}
-      try {
-        if (result.link && !result.link.copyRequired && popup)
-          popup.location.replace(result.link.url);
-        else popup?.close();
-      } catch {
-        popup?.close(); /* The saved receipt still provides a retry link. */
-      }
     } catch (e) {
-      popup?.close();
       setError(
         e instanceof Error && e.name === 'TimeoutError'
           ? 'The connection timed out. Your order may already be saved. Retry with the same details to safely recover it without placing a duplicate order.'
@@ -115,27 +106,16 @@ export function Checkout({ settings: s }: { settings: Settings }) {
   if (receipt)
     return (
       <div className="receipt">
-        <span className="eyebrow">ORDER SAVED · PENDING CONFIRMATION</span>
-        <h1>One more step: send your message.</h1>
+        <span className="eyebrow">ORDER PLACED</span>
+        <h1>Thank you. Your order is placed!</h1>
         <p>
-          Your order <b>{receipt.reference}</b> has been saved. Open WhatsApp and tap <b>Send</b>.
-          Our team will call to confirm availability and delivery.
+          Your order <b>{receipt.reference}</b> has been placed successfully. Keep your receipt
+          below. Our team will contact you to confirm delivery.
         </p>
         <p>
           Total payable on delivery: <b>{money(receipt.total, receipt.currency)}</b>
         </p>
-        {receipt.link?.copyRequired && (
-          <p className="notice">
-            This order is too long for a reliable WhatsApp link. Copy the full summary below, then
-            paste it into WhatsApp.
-          </p>
-        )}
         <div className="row">
-          {receipt.link && (
-            <a href={receipt.link.url} target="_blank" rel="noreferrer" className="button">
-              Open / retry WhatsApp ↗
-            </a>
-          )}
           <button
             className="button secondary"
             onClick={async () => {
@@ -155,8 +135,8 @@ export function Checkout({ settings: s }: { settings: Settings }) {
           <textarea aria-label="Saved order summary" readOnly value={receipt.message} rows={18} />
         </details>
         <p>
-          Opening WhatsApp does not send the message or confirm your order. Keep this order
-          reference for follow-up.
+          Payment method: Cash on Delivery. No payment has been taken. Keep this order reference for
+          follow-up.
         </p>
         <Link className="text-link" href="/shop">
           Continue shopping →
@@ -198,10 +178,6 @@ export function Checkout({ settings: s }: { settings: Settings }) {
                 placeholder="03XX XXXXXXX"
                 autoComplete="tel"
               />
-            </label>
-            <label>
-              WhatsApp number (if different)
-              <input name="whatsapp" type="tel" maxLength={30} />
             </label>
             <label>
               Province / region
@@ -302,10 +278,10 @@ export function Checkout({ settings: s }: { settings: Settings }) {
               phone.
             </p>
           </div>
-          {(!s.checkout_enabled || shipping === null || !s.whatsapp) && (
+          {(!s.checkout_enabled || shipping === null || !notificationsReady) && (
             <p className="notice">
-              {!s.whatsapp || shipping === null
-                ? 'Ordering is unavailable because delivery or WhatsApp is not configured. Please contact the store.'
+              {!notificationsReady || shipping === null
+                ? 'Ordering is temporarily unavailable. Please contact the store or try again later.'
                 : 'Online orders are temporarily paused. Please contact the store or try again later.'}
             </p>
           )}
@@ -319,12 +295,12 @@ export function Checkout({ settings: s }: { settings: Settings }) {
           <button
             className="button"
             type="submit"
-            disabled={busy || !s.checkout_enabled || shipping === null || !s.whatsapp}
+            disabled={busy || !s.checkout_enabled || shipping === null || !notificationsReady}
           >
-            {busy ? 'Saving your order…' : 'Save order & open WhatsApp ↗'}
+            {busy ? 'Placing your order…' : 'Confirm order'}
           </button>
           <small>
-            You must tap Send in WhatsApp. <Link href="/policies">Store policies</Link>
+            By confirming, you agree to our <Link href="/policies">store policies</Link>.
           </small>
         </aside>
       </form>

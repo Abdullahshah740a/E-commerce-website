@@ -53,7 +53,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="breadcrumb">
         <Link href="/">Home</Link> / <Link href="/shop">The collection</Link> / {p.name}
       </div>
-      <ProductDetail product={p} whatsapp={settings.whatsapp} />
+      <ProductDetail product={p} />
       {related.products.filter((r) => r.id !== p.id).length > 0 && (
         <section className="section">
           <h2>You might also love.</h2>

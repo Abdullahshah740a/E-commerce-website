@@ -103,9 +103,8 @@ export const settingsSchema = z
     facebook: safeUrl.optional(),
   })
   .refine(
-    (s) =>
-      !s.checkout_enabled || (s.whatsapp !== '' && s.delivery_fee !== null && s.delivery_enabled),
-    'Configure WhatsApp and delivery fees before accepting orders',
+    (s) => !s.checkout_enabled || (s.delivery_fee !== null && s.delivery_enabled),
+    'Configure delivery fees before accepting orders',
   );
 export const categorySchema = z.object({
   id: z.uuid().optional(),

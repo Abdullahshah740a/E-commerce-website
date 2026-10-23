@@ -1,15 +1,20 @@
 import { createHash, createHmac } from 'node:crypto';
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { checkoutSchema } from '@/lib/validation';
 import { privilegedDb } from '@/lib/supabase';
-import { storeData } from '@/lib/data';
-import { whatsappLink, whatsappMessage } from '@/lib/commerce';
+import { orderSummary } from '@/lib/commerce';
+import { deliverOrderWebhook, webhookConfigured } from '@/lib/order-webhooks';
 import { sameOrigin, readJson, failure, noStore } from '@/lib/http';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 export async function POST(request: Request) {
   try {
     sameOrigin(request);
     const db = privilegedDb();
+    if (!webhookConfigured()) throw new Error('Order notifications are not configured');
+    // Fail before stock/order changes if the required migration is absent.
+    const { error: queueError } = await db.from('order_webhooks').select('order_id').limit(0);
+    if (queueError) throw queueError;
     const secret = process.env.CHECKOUT_RATE_LIMIT_SECRET;
     if (!secret || secret.length < 32) throw new Error('Rate limiting is not configured');
     // On Vercel this header is set by the trusted edge. Other hosts must strip and replace it.
@@ -52,14 +57,15 @@ export async function POST(request: Request) {
       if (msg) return NextResponse.json({ error: msg }, { status: 409, headers: noStore });
       throw error;
     }
-    const { settings } = await storeData();
-    const message = whatsappMessage(data.order, data.items);
-    const link = whatsappLink(settings.whatsapp, message);
+    const message = orderSummary(data.order, data.items);
+    after(async () => {
+      await deliverOrderWebhook(data.order.id);
+    });
     return NextResponse.json(
       {
         reference: data.order.reference,
         message,
-        link,
+        status: data.order.status,
         total: data.order.total,
         currency: data.order.currency,
       },

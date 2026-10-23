@@ -1,12 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  normalizePhone,
-  money,
-  deliveryFee,
-  effectivePrice,
-  whatsappMessage,
-  whatsappLink,
-} from '@/lib/commerce';
+import { normalizePhone, money, deliveryFee, effectivePrice, orderSummary } from '@/lib/commerce';
 import { checkoutSchema, productSchema, settingsSchema } from '@/lib/validation';
 import { defaultSettingsForTest, orderForTest, itemsForTest } from './fixtures';
 import { detectMedia } from '@/lib/uploads';
@@ -79,7 +72,7 @@ describe('Checkout validation', () => {
     ).toBe(100000));
 });
 describe('Configuration validation', () => {
-  it('blocks enabling checkout before real delivery and WhatsApp settings exist', () => {
+  it('blocks enabling checkout before delivery settings exist', () => {
     expect(
       settingsSchema.safeParse({ ...defaultSettingsForTest, checkout_enabled: true }).success,
     ).toBe(false);
@@ -88,7 +81,7 @@ describe('Configuration validation', () => {
         ...defaultSettingsForTest,
         checkout_enabled: true,
         delivery_fee: 0,
-        whatsapp: '923001234567',
+        whatsapp: '',
       }).success,
     ).toBe(true);
   });
@@ -118,9 +111,9 @@ describe('Configuration validation', () => {
     ).toBe(false);
   });
 });
-describe('WhatsApp summaries', () => {
+describe('Order summaries', () => {
   it('contains every saved item, contact field and total', () => {
-    const message = whatsappMessage(orderForTest, itemsForTest);
+    const message = orderSummary(orderForTest, itemsForTest);
     for (const value of [
       'ORD-TEST',
       'Amina & Sons',
@@ -136,18 +129,9 @@ describe('WhatsApp summaries', () => {
       'Pending Confirmation',
     ])
       expect(message).toContain(value);
-    const link = whatsappLink('923001234567', message)!;
-    expect(new URL(link.url).searchParams.get('text')).toBe(message);
-    expect(link.copyRequired).toBe(false);
-  });
-  it('never constructs a link for a fabricated or malformed destination', () =>
-    expect(whatsappLink('', 'test')).toBeNull());
-  it('falls back to copying a complete large summary', () => {
-    const result = whatsappLink('923001234567', 'x'.repeat(8000))!;
-    expect(result.copyRequired).toBe(true);
-    expect(result.url).toBe('https://wa.me/923001234567');
   });
 });
+
 describe('Media validation', () => {
   it('rejects SVG and disguised files', () => {
     expect(detectMedia(new TextEncoder().encode('<svg onload="alert(1)">'))).toBeNull();

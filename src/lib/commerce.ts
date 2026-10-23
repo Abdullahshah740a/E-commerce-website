@@ -29,7 +29,7 @@ export function deliveryFee(
   const key = city.trim().toLowerCase();
   return Object.hasOwn(s.city_fees, key) ? s.city_fees[key] : s.delivery_fee;
 }
-export function whatsappMessage(
+export function orderSummary(
   order: Pick<
     Order,
     | 'reference'
@@ -75,12 +75,4 @@ export function whatsappMessage(
   ]
     .filter((v) => v !== '')
     .join('\n');
-}
-export function whatsappLink(number: string, message: string) {
-  if (!/^[1-9]\d{7,14}$/.test(number)) return null;
-  const full = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
-  return {
-    url: full.length > 7500 ? `https://wa.me/${number}` : full,
-    copyRequired: full.length > 7500,
-  };
 }

@@ -50,6 +50,7 @@ beforeAll(async () => {
     '002_media.sql',
     '003_catalog_safety.sql',
     '004_inventory_and_bestsellers.sql',
+    '005_order_webhooks.sql',
   ])
     await db.exec(readFileSync(resolve('supabase/migrations', file), 'utf8'));
   await db.exec(
@@ -63,6 +64,71 @@ beforeEach(async () => {
 });
 afterAll(async () => {
   await db.close();
+});
+
+describe('Durable webhook queue', () => {
+  it('accepts orders without WhatsApp and atomically queues one immutable notification', async () => {
+    await db.exec(`update settings set data=data||'{"whatsapp":""}'::jsonb;`);
+    await role('service_role');
+    const placed = await order();
+    await order();
+    const jobs = await db.query<{ payload: { order: Record<string, unknown>; items: unknown[] } }>(
+      'select payload from order_webhooks',
+    );
+    expect(jobs.rows).toHaveLength(1);
+    expect(jobs.rows[0].payload.order.reference).toBe(placed.order.reference);
+    expect(jobs.rows[0].payload.order).not.toHaveProperty('idempotency_key');
+    expect(jobs.rows[0].payload.order).not.toHaveProperty('request_hash');
+    expect(jobs.rows[0].payload.order).not.toHaveProperty('internal_notes');
+    expect(jobs.rows[0].payload.items).toHaveLength(1);
+    await db.query("update orders set internal_notes='PRIVATE' where id=$1", [placed.order.id]);
+    expect(
+      JSON.stringify((await db.query('select payload from order_webhooks')).rows),
+    ).not.toContain('PRIVATE');
+  });
+  it('does not queue notifications for rejected orders', async () => {
+    await role('service_role');
+    await expect(order([{ ...cart[0], quantity: 99 }])).rejects.toThrow();
+    expect((await db.query('select * from order_webhooks')).rows).toHaveLength(0);
+  });
+  it('leases delivery once, recovers expired leases, and skips delivered jobs', async () => {
+    await role('service_role');
+    const placed = await order();
+    const claim = () =>
+      db.query<{ lease_token: string; event_id: string }>('select * from claim_order_webhook($1)', [
+        placed.order.id,
+      ]);
+    const first = (await claim()).rows[0];
+    expect(first.lease_token).toBeTruthy();
+    expect((await claim()).rows).toHaveLength(0);
+    await db.query(
+      "update order_webhooks set locked_at=now()-interval '3 minutes' where order_id=$1",
+      [placed.order.id],
+    );
+    const recovered = (await claim()).rows[0];
+    expect(recovered.event_id).toBe(first.event_id);
+    expect(recovered.lease_token).not.toBe(first.lease_token);
+    await db.query("update order_webhooks set status='delivered' where order_id=$1", [
+      placed.order.id,
+    ]);
+    expect((await claim()).rows).toHaveLength(0);
+    await order();
+    expect((await db.query('select * from order_webhooks')).rows).toHaveLength(1);
+  });
+  it('protects payloads from guests and restricts delivery claims to the server', async () => {
+    await role('service_role');
+    const placed = await order();
+    await role('anon');
+    expect((await db.query('select * from order_webhooks')).rows).toHaveLength(0);
+    await expect(
+      db.query('select * from claim_order_webhook($1)', [placed.order.id]),
+    ).rejects.toThrow();
+    await role('authenticated', admin);
+    expect((await db.query('select * from order_webhooks')).rows).toHaveLength(1);
+    await expect(
+      db.query('select * from claim_order_webhook($1)', [placed.order.id]),
+    ).rejects.toThrow();
+  });
 });
 describe('Actual PostgreSQL migrations and security policies (local test database only)', () => {
   it('does not let a stale product editor overwrite order-held inventory', async () => {

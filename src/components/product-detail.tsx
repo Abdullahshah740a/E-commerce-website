@@ -7,7 +7,7 @@ import type { Product } from '@/lib/types';
 import { money, effectivePrice } from '@/lib/commerce';
 import { useCart } from './cart-provider';
 import { ImageLightbox } from './image-lightbox';
-export function ProductDetail({ product: p, whatsapp }: { product: Product; whatsapp: string }) {
+export function ProductDetail({ product: p }: { product: Product }) {
   const variants = p.variants.filter((v) => v.active);
   const [variantId, setVariant] = useState(
     variants.find((v) => v.stock > 0)?.id || variants[0]?.id || '',
@@ -168,16 +168,6 @@ export function ProductDetail({ product: p, whatsapp }: { product: Product; what
           <summary>About this piece</summary>
           <p className="preserve-lines">{p.description || p.short_description}</p>
         </details>
-        {whatsapp && (
-          <a
-            className="text-link"
-            target="_blank"
-            rel="noreferrer"
-            href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(`I have a question about ${p.name} (${p.sku})`)}`}
-          >
-            Ask us on WhatsApp ↗
-          </a>
-        )}
       </div>
       {zoom && selected && (
         <ImageLightbox src={selected.url} name={p.name} onClose={() => setZoom(false)} />

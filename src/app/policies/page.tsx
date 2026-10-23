@@ -9,8 +9,9 @@ export default async function Page() {
       <h1 className="page-title">Our store & policies.</h1>
       <h2>Ordering & payment</h2>
       <p>
-        Place a guest order and send the saved summary through WhatsApp. Our team will call to
-        confirm your order before dispatch. Payment is Cash on Delivery.
+        Confirm your guest order on this website to receive a receipt immediately. Your order
+        details are securely forwarded to our order-processing service. Our team will contact you to
+        confirm delivery before dispatch. Payment is Cash on Delivery.
       </p>
       <h2>Delivery, returns & privacy</h2>
       <p className="preserve-lines">{s.policies}</p>
