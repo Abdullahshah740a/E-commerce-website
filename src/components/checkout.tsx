@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCart } from './cart-provider';
 import { money, deliveryFee } from '@/lib/commerce';
 import type { Settings } from '@/lib/types';
@@ -19,6 +20,7 @@ export function Checkout({
   notificationsReady: boolean;
 }) {
   const { items, ready, clear } = useCart();
+  const router = useRouter();
   const [city, setCity] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -39,6 +41,21 @@ export function Checkout({
   }, []);
   const subtotal = items.reduce((n, i) => n + i.expected_price * i.quantity, 0);
   const shipping = deliveryFee(s, subtotal, city);
+  const unavailable = !s.checkout_enabled || shipping === null || !notificationsReady;
+  useEffect(() => {
+    // A checkout tab can retain server props from before environment/settings changes.
+    // Refresh the server props while retaining the customer's existing form and cart.
+    const refresh = () => router.refresh();
+    window.addEventListener('focus', refresh);
+    window.addEventListener('pageshow', refresh);
+    if (unavailable) refresh();
+    const timer = unavailable ? window.setInterval(refresh, 15000) : undefined;
+    return () => {
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('pageshow', refresh);
+      if (timer !== undefined) window.clearInterval(timer);
+    };
+  }, [router, unavailable]);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (
@@ -282,7 +299,10 @@ export function Checkout({
             <p className="notice">
               {!notificationsReady || shipping === null
                 ? 'Ordering is temporarily unavailable. Please contact the store or try again later.'
-                : 'Online orders are temporarily paused. Please contact the store or try again later.'}
+                : 'Online orders are temporarily paused. Please contact the store or try again later.'}{' '}
+              <button type="button" className="text-link" onClick={() => router.refresh()}>
+                Check again
+              </button>
             </p>
           )}
           {error && (

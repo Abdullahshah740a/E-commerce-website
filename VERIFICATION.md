@@ -2,6 +2,8 @@
 
 ## Current order flow
 
+Availability follow-up: the running `/checkout` response reports notification readiness and checkout enabled, with PKR 100 delivery. Browser inspection confirmed the enabled Confirm order button. Checkout now refreshes server availability on focus/pageshow and immediately/every 15 seconds while unavailable, preserving the mounted form; a Check again button provides a manual recheck. TypeScript and lint passed for this fix.
+
 Final checks for the Make change: **60 automated tests, 12 local HTTP checks, 10 read-only hosted Supabase checks, ESLint and production build passed**. A scan of 24 client JavaScript/source-map files found zero matches for the configured webhook URL or server secret. Browser inspection showed an enabled Confirm order button, no WhatsApp checkout field/link, and the unchanged PKR 100 delivery fee. The owner's cart and form data were not submitted during browser inspection.
 
 The owner replaced WhatsApp ordering with server-side Make webhook delivery. Migration 005 is installed. Confirm order saves a pending/unpaid COD order and a durable notification atomically, then returns a receipt immediately. Background delivery has leases, bounded retries and admin status/manual retry. The private endpoint stays in ORDER_WEBHOOK_URL. Live testing verified Make HTTP acceptance on attempt one, complete two-item payload, no WhatsApp link, and idempotent replay without another send. All QA records were removed. The current automated suite passes 60 tests; build, type checks and lint are checked for this change. See WEBHOOK.md. Older WhatsApp/browser observations below describe the previous flow, not the current checkout.
