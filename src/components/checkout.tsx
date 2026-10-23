@@ -5,13 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useCart } from './cart-provider';
 import { money, deliveryFee } from '@/lib/commerce';
 import type { Settings } from '@/lib/types';
-type Receipt = {
-  reference: string;
-  message: string;
-  status: string;
-  total: number;
-  currency: string;
-};
+import type { Receipt } from '@/lib/receipt';
+import { OrderReceipt } from './order-receipt';
 export function Checkout({
   settings: s,
   notificationsReady,
@@ -25,7 +20,6 @@ export function Checkout({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [receipt, setReceipt] = useState<Receipt | null>(null);
-  const [copied, setCopied] = useState(false);
   const key = useRef('');
   const attempt = useRef('');
   const submitting = useRef(false);
@@ -120,46 +114,7 @@ export function Checkout({
       submitting.current = false;
     }
   }
-  if (receipt)
-    return (
-      <div className="receipt">
-        <span className="eyebrow">ORDER PLACED</span>
-        <h1>Thank you. Your order is placed!</h1>
-        <p>
-          Your order <b>{receipt.reference}</b> has been placed successfully. Keep your receipt
-          below. Our team will contact you to confirm delivery.
-        </p>
-        <p>
-          Total payable on delivery: <b>{money(receipt.total, receipt.currency)}</b>
-        </p>
-        <div className="row">
-          <button
-            className="button secondary"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(receipt.message);
-                setCopied(true);
-              } catch {
-                setCopied(false);
-              }
-            }}
-          >
-            {copied ? 'Copied' : 'Copy complete summary'}
-          </button>
-        </div>
-        <details open>
-          <summary>Your order summary</summary>
-          <textarea aria-label="Saved order summary" readOnly value={receipt.message} rows={18} />
-        </details>
-        <p>
-          Payment method: Cash on Delivery. No payment has been taken. Keep this order reference for
-          follow-up.
-        </p>
-        <Link className="text-link" href="/shop">
-          Continue shopping →
-        </Link>
-      </div>
-    );
+  if (receipt) return <OrderReceipt receipt={receipt} businessName={s.business_name} />;
   if (!ready) return <p>Loading your bag…</p>;
   if (!items.length)
     return (

@@ -1,0 +1,56 @@
+{
+  "event": "order.placed",
+  "schema_version": 1,
+  "event_id": "3b93d704-dc0d-4f20-bcbb-73f1dd6e8954",
+  "money_unit": "paisa",
+  "order": {
+    "id": "cd70475f-5022-4443-8511-547a8b4506cb",
+    "reference": "QA-LAYOUT-d103fa71",
+    "customer": {
+      "name": "QA TEST — DO NOT DISPATCH",
+      "phone": "920000000000",
+      "address": "FICTIONAL ADDRESS — AUTOMATION TEST ONLY",
+      "area": "QA Sample Area",
+      "city": "QA Sample City",
+      "province": "Punjab",
+      "instructions": "Test notification only. Never dispatch this order.",
+      "notes": "Fictional formatting check: two products, separate phone field, no duplicate summary."
+    },
+    "created_at": "2026-10-23T10:20:01.768Z",
+    "subtotal": 335000,
+    "delivery_fee": 10000,
+    "discount": 0,
+    "total": 345000,
+    "currency": "PKR",
+    "status": "pending_confirmation",
+    "payment_method": "cod",
+    "payment_status": "unpaid"
+  },
+  "items": [
+    {
+      "name": "QA Sage Bedsheet",
+      "sku": "QA-SAGE-KING",
+      "variant": "King / Sage / Stripe",
+      "quantity": 2,
+      "unit_price": 125000,
+      "line_total": 250000
+    },
+    {
+      "name": "QA Cream Cushion Cover",
+      "sku": "QA-CREAM-STD",
+      "variant": "Standard / Cream / Plain",
+      "quantity": 1,
+      "unit_price": 85000,
+      "line_total": 85000
+    }
+  ],
+  "summary": "NEW WEBSITE ORDER\nOrder ID: QA-LAYOUT-d103fa71\nDate: 2026-10-23T10:20:01.768Z\nCUSTOMER DETAILS\nName: QA TEST — DO NOT DISPATCH\nPhone: 920000000000\nAddress: FICTIONAL ADDRESS — AUTOMATION TEST ONLY, QA Sample Area\nCity: QA Sample City\nProvince: Punjab\nLandmark/Instructions: Test notification only. Never dispatch this order.\nORDER ITEMS\n1. QA Sage Bedsheet\n   SKU: QA-SAGE-KING\n   Variant: King / Sage / Stripe\n   Quantity: 2\n   Unit Price: Rs 1,250.00\n   Item Total: Rs 2,500.00\n2. QA Cream Cushion Cover\n   SKU: QA-CREAM-STD\n   Variant: Standard / Cream / Plain\n   Quantity: 1\n   Unit Price: Rs 850.00\n   Item Total: Rs 850.00\nSubtotal: Rs 3,350.00\nDelivery Fee: Rs 100.00\nDiscount: Rs 0.00\nTOTAL PAYABLE: Rs 3,450.00\nPayment Method: Cash on Delivery\nOrder Status: Pending Confirmation\nCustomer Notes: Fictional formatting check: two products, separate phone field, no duplicate summary.",
+  "totals": {
+    "currency": "PKR",
+    "unit": "rupees",
+    "subtotal": 3350,
+    "delivery_fee": 100,
+    "discount": 0,
+    "total": 3450
+  }
+}

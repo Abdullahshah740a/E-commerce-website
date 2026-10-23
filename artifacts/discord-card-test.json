@@ -1,0 +1,21 @@
+{
+  "run": "e0d45ccb",
+  "results": [
+    {
+      "reference": "QA-CARD-A-e0d45ccb",
+      "event_id": "fa8dc596-f3e7-406a-9708-66ef22c8b983",
+      "accepted": true,
+      "discord_message_id": "1563126510989221970",
+      "make_run_id": "3587613e3ea5406e9032baa74a41727f",
+      "verified_embed_count": 1
+    },
+    {
+      "reference": "QA-CARD-B-e0d45ccb",
+      "event_id": "6207593d-0b52-4eae-883f-4eca6082f1a5",
+      "accepted": true,
+      "discord_message_id": "1563126513854062654",
+      "make_run_id": "3d840bafcfe445ae90eef22679c7f125",
+      "verified_embed_count": 1
+    }
+  ]
+}

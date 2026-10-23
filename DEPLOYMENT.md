@@ -38,15 +38,15 @@ Do not configure a static export or use `dist/` as the output. This application 
 
 Copy the required values privately from your local `.env.local` or the provider dashboards into Vercel's environment-variable fields. Do not upload that file to GitHub.
 
-| Variable                               | Production value                              |
-| -------------------------------------- | --------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Existing Supabase project URL                 |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Existing `sb_publishable_…` key               |
-| `ORDER_WEBHOOK_URL`                    | Optional server-only override of Make default |
-| `SUPABASE_SECRET_KEY`                  | Server-only `sb_secret_…` key                 |
-| `CHECKOUT_RATE_LIMIT_SECRET`           | Random secret at least 32 characters long     |
-| `NEXT_PUBLIC_SITE_URL`                 | Actual HTTPS production URL                   |
-| `STORE_LAUNCHED`                       | `false` until the launch review is complete   |
+| Variable                               | Production value                                               |
+| -------------------------------------- | -------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Existing Supabase project URL                                  |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Existing `sb_publishable_…` key                                |
+| `ORDER_WEBHOOK_URL`                    | Optional server-only override of Make default                  |
+| `SUPABASE_SECRET_KEY`                  | Server-only `sb_secret_…` key                                  |
+| `CHECKOUT_RATE_LIMIT_SECRET`           | Optional 32+ character override; otherwise derived server-side |
+| `NEXT_PUBLIC_SITE_URL`                 | Actual HTTPS production URL                                    |
+| `STORE_LAUNCHED`                       | `false` until the launch review is complete                    |
 
 Do not give the secret key a `NEXT_PUBLIC_` prefix. Do not manually invent or set the `VERCEL` platform variable; Vercel supplies it. Checkout uses Vercel's documented edge-set client-address header for abuse limiting.
 

@@ -1,6 +1,6 @@
 # Order confirmation → Make
 
-At the owner's explicit request, the supplied Make URL is now the default in the server-only `src/lib/order-webhooks.ts` module. Checkout and delivery use this same default when `ORDER_WEBHOOK_URL` is missing or blank, including on Vercel. The URL is therefore present in repository source, but is not sent to the browser. `ORDER_WEBHOOK_URL` remains an optional server-only override; never use a `NEXT_PUBLIC_` prefix. No Discord integration is implemented; the owner manages downstream Make/Discord processing.
+At the owner's explicit request, the supplied Make URL is now the default in the server-only `src/lib/order-webhooks.ts` module. Checkout and delivery use this same default when `ORDER_WEBHOOK_URL` is missing or blank, including on Vercel. The URL is therefore present in repository source, but is not sent to the browser. `ORDER_WEBHOOK_URL` remains an optional server-only override; never use a `NEXT_PUBLIC_` prefix. Discord delivery and presentation are configured in Make, outside the website application.
 
 ## Customer flow
 
@@ -39,3 +39,28 @@ Migration `005_order_webhooks.sql` follows the four existing migrations. It remo
 `node scripts/live-webhook.mjs ADMIN_EMAIL` sends one clearly fictional QA order to the configured Make endpoint, verifies receipt, delivery and idempotent replay, then cancels/deletes only its own test records. It leaves business settings and demo products alone. Do not run write integration exercises against an operating store without a controlled test window.
 
 Live verification: Make accepted the two-item QA payload on the first delivery attempt. An identical checkout replay reused the reference and left the delivery attempt count unchanged. The QA records were removed.
+
+## Discord card presentation — 23 October 2026
+
+At the owner's request, the existing Make scenario **Rahat Bedsheets Discord automation** (8128317) was inspected and updated through its UI. It contains Webhook → Discord Send a Message, targeting the existing `rahat-bedsheets` channel. History showed separate Discord message IDs for separate orders; no cross-order aggregator or message-edit module was present. Older mappings additionally repeated a secondary summary. The current mapping now uses one rich embed per webhook bundle, with title `New order — {{1.order.reference}}`, description `{{1.summary}}`, the store's sage color and a Cash on Delivery footer. The duplicate plain message is empty. No website deployment is needed for this Make-only presentation change.
+
+The owner explicitly approved two fictional QA notifications. Both runs succeeded, each returned one embed containing only its own reference and a different Discord message ID. QA A: `QA-CARD-A-e0d45ccb`, Discord message `1563126510989221970`; QA B: `QA-CARD-B-e0d45ccb`, Discord message `1563126513854062654`. No real order was replayed or created for this presentation test. Existing messages were left intact. The two clearly labeled QA messages remain in the channel for owner review.
+
+The embed description uses the complete summary without truncation. Discord's per-embed limits still apply to unusually large order summaries; a downstream attachment or multi-embed layout would be needed for summaries beyond those limits.
+
+The optional `scripts/test-discord-cards.mjs --send-two-approved-qa-messages` exercise sends two new messages and must only be used with explicit approval for that channel.
+
+### Structured layout refinement — latest configuration
+
+The active Discord Send a Message module now sends **one rich embed and one downloadable receipt file per order**, with an empty plain message. This replaces the earlier description containing the complete raw summary. No application deployment or database migration is required.
+
+- Sage accent (`5070150`), order-reference title, customer name and Pakistan-local placed time, pending-confirmation status.
+- Full-width **Customer phone** field whose value contains only the international number, e.g. `+923001234567`. It has no label, code fence or surrounding order text in its value. Discord clients control text selection and long-press behaviour; automation cannot guarantee clipboard behaviour or arbitrary fonts/font sizes.
+- Separate full-width delivery address, item details, payment breakdown, delivery instructions and customer note fields. Optional notes/instructions default to “None provided.”
+- Amounts use authoritative `order` values divided by 100, formatted to two decimal places. The total payable is bold; COD/unpaid is explicit. The card does not repeat the entire summary.
+- The item field extracts only the stable `ORDER ITEMS` → `Subtotal:` section from the website summary. It previews up to 900 characters and explicitly points to the attachment if longer. Keep these delimiters stable when changing `orderSummary`; otherwise update the Make mapping too. Complete item details remain in `receipt-<reference>.txt`, generated from `toBinary(1.summary)` without truncation. This avoids Discord's 1024-character field limit while retaining all order details.
+- Instructions use `ifempty(get(1.order.customer; "instructions"); "None provided.")`, because that optional key was absent from Make's original detected sample schema.
+
+The owner approved **one** new fictional QA notification for this refinement. Run `d23a94f3fe5647ad810561debdadbc0c` succeeded and Discord returned message `1563134972003487745` for `QA-LAYOUT-d103fa71`: empty plain content, one rich embed with six fields and one UTF-8 text attachment (893 bytes, matching the full original summary). Both item quantities and prices, PKR 3,350 subtotal + PKR 100 delivery = PKR 3,450 total, dedicated phone-only field, instructions and notes were checked in Discord's returned output. No website order or inventory change was made. Mobile long-press was not tested.
+
+Safe fictional payload: `artifacts/discord-layout-qa.json`; delivery evidence: `artifacts/discord-layout-verified.png`. `scripts/test-discord-layout.mjs` prepares a fictional payload locally by default; its explicit send flag sends **one new Discord message** and requires fresh owner approval each time. Neither test script should be run automatically as part of the application test suite.

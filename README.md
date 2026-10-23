@@ -28,7 +28,7 @@ Open http://127.0.0.1:3000. The public site explains when the backend is unavail
 | `NEXT_PUBLIC_SUPABASE_URL`             | Supabase Project Settings → API → Project URL                                     |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Project Settings → API Keys → publishable key (`sb_publishable_…`)                |
 | `SUPABASE_SECRET_KEY`                  | Server-only secret key (`sb_secret_…`); never use a NEXT_PUBLIC prefix            |
-| `CHECKOUT_RATE_LIMIT_SECRET`           | Random 32+ character secret for hashing rate-limit identifiers                    |
+| `CHECKOUT_RATE_LIMIT_SECRET`           | Optional 32+ character override; otherwise derived server-side                    |
 | `NEXT_PUBLIC_SITE_URL`                 | Canonical origin, e.g. `https://shop.example.com`; used in email recovery and SEO |
 | `STORE_LAUNCHED`                       | Default false; set true only after QA to allow search-engine indexing             |
 
