@@ -88,12 +88,19 @@ export function MediaManager({
         longer videos, use a YouTube link or an HTTPS URL to an MP4/WebM video. YouTube videos must
         allow embedding. Product media is public.
       </p>
+      <p id="product-image-guide" className="notice">
+        <strong>Recommended image size: 1200 px wide × 1400 px high (portrait).</strong> Use clear
+        JPEG, PNG or WebP images under 3 MB. Other dimensions are accepted. Images are cropped to
+        fit the gallery and shop cards, so keep the product centered with extra space around the
+        edges. Customers can click the main image to view the full photo.
+      </p>
       <label>
         Upload images or video
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
           multiple
+          aria-describedby="product-image-guide"
           disabled={busy}
           onChange={(e) => {
             void upload(e.target.files);

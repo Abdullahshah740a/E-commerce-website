@@ -547,7 +547,11 @@ p {
   overflow: hidden;
 }
 .product-photo img {
-  object-fit: contain;
+  object-fit: cover;
+  transition: transform 0.4s;
+}
+.product-card:hover img {
+  transform: scale(1.03);
 }
 .product-label {
   position: absolute;
@@ -1234,7 +1238,7 @@ input[type='checkbox'] {
   cursor: zoom-in;
 }
 .detail-photo img {
-  object-fit: contain;
+  object-fit: cover;
 }
 .product-video {
   width: 100%;
@@ -1285,7 +1289,7 @@ input[type='checkbox'] {
 .gallery-thumbs img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 .product-info {
   padding-top: 18px;
@@ -1487,7 +1491,7 @@ td a {
 .media-card > video {
   width: 100%;
   height: 160px;
-  object-fit: contain;
+  object-fit: cover;
 }
 .media-card .text-link {
   font-size: 10px;
